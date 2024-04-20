@@ -108,14 +108,14 @@ The primary goals of customer analysis include:
 * Which day of the week has the best average ratings per branch?
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-## PROJECT'S WORKFLOW
+## PROJECT'S WORKFLOW (in progress)
 ### With MySQL
 * Identify features, measure units and data types
 * Create Database and import data
 * Creating new columns ( parts of the day, day of the week name, month name) to help identify sales trends
 * Using MySQL queries to answer the questions (SELECT, SELECT DISTINC, SUM, AVG, GROUP BY, ORDER BY, etc.)
 
-### With Python
+### With Python (in progress)
 (Couldn't stay away from it, could I?)
 * Load the data in a DATAFRAME 
 * Exploratory data analysis using Pandas
