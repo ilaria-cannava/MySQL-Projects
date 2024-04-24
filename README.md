@@ -81,6 +81,7 @@ The primary goals of customer analysis include:
 * What is the total revenue by month?
 * What month had the largest COGS?
 * Which branch sold more products than average product sold?
+* How many unique payment methods does the data have?
 * What is the most common payment method?
 
 ### PRODUCT ANALYSIS
@@ -95,8 +96,6 @@ The primary goals of customer analysis include:
 * How many unique customer types does the data have?
 * Which customer type buys the most?
 * Which of the customer types brings the most revenue?
-* How many unique payment methods does the data have?
-* What is the most common payment method?
 * What is the most common customer type?
 * Which customer type buys the most?
 * Which customer type pays the most in VAT?
