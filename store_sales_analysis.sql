@@ -105,24 +105,15 @@ FROM(
 SELECT
 	DISTINCT city, branch
 FROM sales;
-/****************************************************************************************/
-/* PRODUCT QUESTIONS */
-/* How many unique product lines the data set has?*/
 
-SELECT 
-	DISTINCT product_line
-FROM sales;
--- Count of product lines
-SELECT COUNT(*) AS count_product_lines
-FROM (
-		SELECT DISTINCT product_line
-        FROM sales
-) AS unique_product_lines;
-
+-- How many unique payment methods does the data have?
+SELECT DISTINCT payment
+	FROM sales;
+    
+-- Count how many payment methods are accepted
 SELECT
-	COUNT(DISTINCT product_line)
+	COUNT(DISTINCT payment) AS payment_types
 FROM sales;
-
 
  /* What is the most common payment method? */
 SELECT 
@@ -131,14 +122,6 @@ SELECT
 FROM sales
 GROUP BY payment
 ORDER by count DESC;
-
-/* What is the best selling product line */
-SELECT 
-	product_line,
-    COUNT(product_line) as count
-FROM sales
-GROUP BY product_line
-ORDER BY count DESC;
 
 /* What is the total revenue by month? */
 SELECT 
@@ -155,22 +138,6 @@ SELECT
 FROM sales
 GROUP BY month_name
 ORDER BY total_cogs DESC;
-
-/* What product line has the largest revenue? */
-SELECT 
-	product_line,
-    SUM(total) AS total_revenue
-FROM sales
-GROUP BY product_line
-ORDER BY total_revenue DESC;
-
-/* What product line has the largest tax? */
-SELECT 
-	product_line,
-    AVG(tax_5pct) AS avg_tax
-FROM sales
-GROUP BY product_line
-ORDER BY avg_tax DESC;
 
 /* What is the city with the largest revenue? */
 SELECT 
@@ -189,6 +156,50 @@ FROM sales
 GROUP BY branch
 HAVING SUM(quantity) > (SELECT AVG(quantity) FROM sales);
 
+    
+
+
+-- ---------------------------------------------------------------------------------------------------
+/*PRODUCT ANALYSIS*/
+/* How many unique product lines the data set has?*/
+SELECT 
+	DISTINCT product_line
+FROM sales;
+-- Count of product lines
+SELECT COUNT(*) AS count_product_lines
+FROM (
+		SELECT DISTINCT product_line
+        FROM sales
+) AS unique_product_lines;
+
+SELECT
+	COUNT(DISTINCT product_line)
+FROM sales;
+
+/* What is the best selling product line */
+SELECT 
+	product_line,
+    COUNT(product_line) as count
+FROM sales
+GROUP BY product_line
+ORDER BY count DESC;
+
+/* What product line has the largest revenue? */
+SELECT 
+	product_line,
+    SUM(total) AS total_revenue
+FROM sales
+GROUP BY product_line
+ORDER BY total_revenue DESC;
+
+/* What product line has the largest tax? */
+SELECT 
+	product_line,
+    AVG(tax_5pct) AS avg_tax
+FROM sales
+GROUP BY product_line
+ORDER BY avg_tax DESC;
+
 /* Most common product by gender? */
 SELECT 
 		gender,
@@ -197,7 +208,7 @@ SELECT
 FROM sales
 GROUP BY gender, product_line
 ORDER BY total_count DESC;
-    
+
 /* What is average rating of each product */
 SELECT
 	ROUND(AVG(rating),2) AS avg_rating,
@@ -206,7 +217,85 @@ FROM sales
 GROUP BY product_line
 ORDER BY avg_rating DESC;
 
+-- ---------------------------------------------------------------------------------------------------
+/*CUSTOMER ANALYSIS*/
+-- How many unique customer types does the data have?
+SELECT DISTINCT customer_type
+	FROM sales;
+SELECT 
+	COUNT(DISTINCT customer_type) AS customer_types
+    FROM sales;
+    
+-- Which of the customer types brings the most revenue?
+SELECT 
+	customer_type,
+    SUM(total) as total_revenue
+	FROM sales
+    GROUP BY customer_type
+    ORDER BY total_revenue DESC;
+    
+-- What is the most common customer type?
+SELECT 
+	customer_type,
+    COUNT(customer_type) AS total_customers
+    FROM sales
+    GROUP BY customer_type
+    ORDER BY total_customers DESC;
 
-/*
+-- Which customer type pays the most in VAT?
+SELECT
+	customer_type,
+    AVG(tax_5pct) AS average_tax
+    FROM sales
+    GROUP BY customer_type
+    ORDER BY average_tax DESC;
+    
+-- What is the gender of most of the customers?
+SELECT
+	gender,
+    COUNT(gender) AS total_count
+    FROM sales
+    GROUP BY gender
+    ORDER BY total_count;
+    
+-- What is the gender distribution per branch?
+SELECT
+	gender,
+    COUNT(gender) AS total_count
+    FROM sales
+    GROUP BY gender
+    HAVING branch = 'A'
+    ORDER BY total_count DESC;
+    
+-- Which time of the day do customers give most ratings?
+SELECT 
+	s.time_of_day,
+    COUNT(rating) AS rating_counts
+    FROM sales AS s
+    GROUP BY s.time_of_day
+    ORDER BY rating_counts DESC;
 
+-- Which time of the day do customers give most ratings per branch?
+SELECT 
+	s.branch,
+	s.time_of_day,
+    COUNT(rating) AS rating_counts
+    FROM sales AS s
+    GROUP BY s.time_of_day, branch
+    ORDER BY rating_counts DESC;
+-- Which day fo the week has the best avg ratings?
+SELECT 
+	s.day_name,
+    AVG(rating) AS average_rating
+    FROM sales AS s
+    GROUP BY s.day_name
+    ORDER BY average_rating DESC;
 
+-- Which day of the week has the best average ratings per branch?
+SELECT 
+	branch,
+	s.day_name,
+    AVG(rating) AS average_rating
+    FROM sales AS s
+    GROUP BY s.day_name, branch
+    ORDER BY average_rating DESC;
