@@ -77,10 +77,20 @@ ALTER TABLE sales ADD COLUMN month_name varchar(25);
 UPDATE sales
 SET month_name = MONTHNAME(date);
 -- ---------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
--- ANSWERING BUSINESS QUESTIONS-----------------------------------------------------------------------------------------------------------------------------------------
-
--- How many cities are represented in the dataset?---------------------------------------
+-- BUSINESS AND SALES ANALYSIS
+-- ---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+/* 	How many unique cities does the data have?
+	In which city is each branch?
+	What is the city with the largest revenue?
+	Number of sales made in each time of the day per weekday
+	Which city has the largest tax percent/ VAT (Value Added Tax)?
+	What is the total revenue by month?
+	What month had the largest COGS?
+	Which branch sold more products than average product sold?
+	How many unique payment methods does the data have?
+	What is the most common payment method?*/
+    
+-- How many cities are represented in the dataset?
 SELECT DISTINCT city
 FROM sales;
 -- If I want the count of them:
@@ -89,9 +99,8 @@ FROM (
     SELECT DISTINCT city
     FROM sales
 ) AS unique_cities;
--- --------------------------------------------------------------------------------------
 
--- How many branches?--------------------------------------------------------------------
+-- How many branches?
 SELECT DISTINCT branch
 FROM sales;
 -- Count how many branches there are in total
@@ -100,11 +109,72 @@ FROM(
 	SELECT DISTINCT branch
     FROM sales
 ) AS unique_branches;
--- --------------------------------------------------------------------------------------
--- Which branch belongs to which city?---------------------------------------------------
+
+-- Which branch belongs to which city?
 SELECT
 	DISTINCT city, branch
 FROM sales;
+
+-- What is the city with the largest revenue?
+SELECT 
+	branch,
+	city,
+    SUM(total) AS total_revenue
+FROM sales
+GROUP BY city, branch
+ORDER BY total_revenue DESC;
+
+-- Number of sales made in each time of the day per weekday
+SELECT 
+	day_name,
+	time_of_day,
+	COUNT(quantity) as total_sales
+FROM sales
+GROUP BY day_name, time_of_day
+ORDER BY 
+    FIELD(day_name, 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'),
+    FIELD(time_of_day, 'Morning', 'Afternoon', 'Evening');
+
+-- Which city has the largest tax percent/ VAT (Value Added Tax)?
+SELECT
+	city,
+    AVG(tax_5pct) as highest_average_tax
+    FROM sales
+    GROUP BY city
+    ORDER BY highest_tax DESC;
+
+-- What is the total revenue by month?
+SELECT 
+	month_name AS month,
+    SUM(total) AS total_revenue
+FROM sales
+GROUP BY month_name
+ORDER BY total_revenue DESC;
+
+-- What month as the largets cogs?
+SELECT
+	month_name AS month, 
+    SUM(cogs) AS total_cogs
+FROM sales
+GROUP BY month_name
+ORDER BY total_cogs DESC;
+
+-- What is the city with the largest revenue?
+SELECT 
+	branch,
+	city,
+    SUM(total) AS total_revenue
+FROM sales
+GROUP BY city, branch
+ORDER BY total_revenue DESC;
+
+-- Whic branch sold more product than the average product sold?
+SELECT 
+	branch,
+    SUM(quantity) as quantity_sold
+FROM sales
+GROUP BY branch
+HAVING SUM(quantity) > (SELECT AVG(quantity) FROM sales);
 
 -- How many unique payment methods does the data have?
 SELECT DISTINCT payment
@@ -115,7 +185,7 @@ SELECT
 	COUNT(DISTINCT payment) AS payment_types
 FROM sales;
 
- /* What is the most common payment method? */
+ -- What is the most common payment method?
 SELECT 
 	payment,
 	COUNT(payment) as count
@@ -123,45 +193,21 @@ FROM sales
 GROUP BY payment
 ORDER by count DESC;
 
-/* What is the total revenue by month? */
-SELECT 
-	month_name AS month,
-    SUM(total) AS total_revenue
-FROM sales
-GROUP BY month_name
-ORDER BY total_revenue DESC;
-
-/* What month as the largets cogs? */
-SELECT
-	month_name AS month, 
-    SUM(cogs) AS total_cogs
-FROM sales
-GROUP BY month_name
-ORDER BY total_cogs DESC;
-
-/* What is the city with the largest revenue? */
-SELECT 
-	branch,
-	city,
-    SUM(total) AS total_revenue
-FROM sales
-GROUP BY city, branch
-ORDER BY total_revenue DESC;
-
-/* Whic branch sold more product than the average product sold? */
-SELECT 
-	branch,
-    SUM(quantity) as quantity_sold
-FROM sales
-GROUP BY branch
-HAVING SUM(quantity) > (SELECT AVG(quantity) FROM sales);
-
     
 
 
--- ---------------------------------------------------------------------------------------------------
-/*PRODUCT ANALYSIS*/
-/* How many unique product lines the data set has?*/
+-- --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+-- PRODUCT ANALYSIS
+-- ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+/*How many unique product lines does the data have?
+* What is the most selling product line?
+* What product line had the largest revenue?
+* What product line had the largest VAT?
+* What is the most common product line by gender?
+* What is the average rating of each product line?*/
+
+
+-- How many unique product lines the data set has?
 SELECT 
 	DISTINCT product_line
 FROM sales;
@@ -176,7 +222,7 @@ SELECT
 	COUNT(DISTINCT product_line)
 FROM sales;
 
-/* What is the best selling product line */
+-- What is the best selling product line?
 SELECT 
 	product_line,
     COUNT(product_line) as count
@@ -184,7 +230,7 @@ FROM sales
 GROUP BY product_line
 ORDER BY count DESC;
 
-/* What product line has the largest revenue? */
+-- What product line has the largest revenue?
 SELECT 
 	product_line,
     SUM(total) AS total_revenue
@@ -192,7 +238,7 @@ FROM sales
 GROUP BY product_line
 ORDER BY total_revenue DESC;
 
-/* What product line has the largest tax? */
+-- What product line has the largest tax? 
 SELECT 
 	product_line,
     AVG(tax_5pct) AS avg_tax
@@ -200,16 +246,33 @@ FROM sales
 GROUP BY product_line
 ORDER BY avg_tax DESC;
 
-/* Most common product by gender? */
+-- Most common product by gender?
 SELECT 
 		gender,
         product_line,
-        COUNT(gender) as total_count
+        SUM(quantity) as total_count
 FROM sales
 GROUP BY gender, product_line
-ORDER BY total_count DESC;
+ORDER BY product_line DESC;
 
-/* What is average rating of each product */
+SELECT 
+    product_line,
+    MAX(IF(gender = 'Female', total_count, NULL)) AS Female,
+    MAX(IF(gender = 'Male', total_count, NULL)) AS Male
+FROM (
+    SELECT 
+        gender,
+        product_line,
+        SUM(quantity) AS total_count
+    FROM 
+        sales
+    GROUP BY 
+        gender, product_line
+) AS subquery
+GROUP BY 
+    product_line;
+
+-- What is average rating of each product 
 SELECT
 	ROUND(AVG(rating),2) AS avg_rating,
     product_line
@@ -218,13 +281,36 @@ GROUP BY product_line
 ORDER BY avg_rating DESC;
 
 -- ---------------------------------------------------------------------------------------------------
-/*CUSTOMER ANALYSIS*/
+-- CUSTOMER ANALYSIS
+-- ---------------------------------------------------------------------------------------------------
+/*	How many unique customer types does the data have?
+	Which customer type buys the most?
+	Which of the customer types brings the most revenue?
+	What is the most common customer type?
+	Which customer type buys the most?
+	Which customer type pays the most in VAT?
+	What is the gender of most of the customers?
+	What is the gender distribution per branch?
+	Which time of the day do customers give most ratings?
+	Which time of the day do customers give most ratings per branch?
+	Which day fo the week has the best avg ratings?
+	Which day of the week has the best average ratings per branch? */
+
+
 -- How many unique customer types does the data have?
 SELECT DISTINCT customer_type
 	FROM sales;
 SELECT 
 	COUNT(DISTINCT customer_type) AS customer_types
     FROM sales;
+    
+-- Which customer type buys the most?
+SELECT 
+	customer_type,
+    SUM(quantity) as total_item_bought
+	FROM sales
+    GROUP BY customer_type
+    ORDER BY total_item_bought DESC;
     
 -- Which of the customer types brings the most revenue?
 SELECT 
